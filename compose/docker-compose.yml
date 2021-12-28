@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  bot_api:
+    environment:
+      - 'API_TOKEN=BOT_TOKEN'
+     - 'DB_URL=mongodb://mongo_db:27017/db'
+   build:
+     context: ../.delpoy
+     dockerfile: .deploy/docker/Dockerfile
+   networks:
+     - bot_net
+   depends_on:
+     - mongo_db
+
+  mongo_db:
+   image: mongo:3.4.21
+   networks:
+     - bot_net
