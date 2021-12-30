@@ -10,9 +10,9 @@ ENV HOST '0.0.0.0'
 ENV PORT 5000
 
 WORKDIR /app
+ARG NO_CACHE=1
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
-ARG NO_CACHE=1
 COPY . /app
 
 CMD ["python", "bot.py"]

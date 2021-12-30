@@ -4,8 +4,11 @@ It echoes any incoming text messages.
 """
 
 import logging
-
+from os import listdir, path
+from random import choice
+from aiogram.dispatcher import FSMContext
 from aiogram import Bot, Dispatcher, executor, types
+from aiogram.dispatcher.filters.state import State, StatesGroup
 from environs import Env
 
 environ = Env()
@@ -22,6 +25,12 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
 
+class Form(StatesGroup):
+    city = State()
+    property_type = State()
+    operation = State()
+
+
 @dp.message_handler(commands=["start", "help"])
 async def send_welcome(message: types.Message):
     """
@@ -30,9 +39,31 @@ async def send_welcome(message: types.Message):
     await message.reply("Hi!\nI'm EchoBot!\nPowered by aiogram.")
 
 
-@dp.message_handler(regexp="(^cat[s]?$|puss)")
-async def cats(message: types.Message):
-    with open("data/cats.jpg", "rb") as photo:
+@dp.message_handler(regexp="^search$")
+async def search_property(message: types.Message):
+    await Form.city.set()
+    await message.reply("Де?")
+
+
+@dp.message_handler(state=Form.city)
+async def process_name(message: types.Message, state: FSMContext):
+    """
+    Process user name
+    """
+    async with state.proxy() as data:
+        data['name'] = message.text
+
+    await message.reply(f"How old are you? {state.proxy()}")
+
+    await Form.next()
+    await message.reply("How old are you?")
+
+
+@dp.message_handler(regexp="^frog$")
+async def frogs(message: types.Message):
+    frog_name = choice(listdir("frogs"))
+    frog_path = path.join("frogs", frog_name)
+    with open(frog_path, "rb") as photo:
         """
         # Old fashioned way:
         await bot.send_photo(
@@ -43,15 +74,15 @@ async def cats(message: types.Message):
         )
         """
 
-        await message.reply_photo(photo, caption="Cats are here 😺")
+        await message.reply_photo(photo, caption="Frogs are here 🐸")
 
 
-@dp.message_handler()
-async def echo(message: types.Message):
-    # old style:
-    # await bot.send_message(message.chat.id, message.text)
+# @dp.message_handler()
+# async def echo(message: types.Message):
+#     # old style:
+#     # await bot.send_message(message.chat.id, message.text)
 
-    await message.answer(message.text)
+    # await message.answer(message.text)
 
 
 if __name__ == "__main__":
